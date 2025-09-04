@@ -1745,30 +1745,44 @@
             }
         }
 
-        async function uploadCurrentURL() {
+        async function uploadCurrentURL(buttonId, status) {
             if (!serialNumber) {
                 console.warn('流水號未輸入，無法上傳URL');
-                return;
+                alert('請先輸入流水號！');
+                return false;
             }
             const data = {
                 full_url: window.location.href,
                 barcode: barcodeValue,
                 serial: serialNumber,
-                total_amount: window.totalAmount || 0
+                button_id: buttonId,
+                status: status,
+                total_amount: window.totalAmount || 0,
+                timestamp: new Date().toISOString()
             };
+            console.log('上傳資料:', JSON.stringify(data, null, 2));
             try {
                 const response = await fetch('https://your-server.com/upload', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(data)
                 });
-                if (!response.ok) {
-                    console.error('URL上傳失敗:', response.statusText);
+                if (response.ok) {
+                    console.log(`按鈕 ${buttonId} 狀態 (${status}) 上傳成功`);
+                    return true;
+                } else {
+                    const errorText = await response.text();
+                    console.error(`URL上傳失敗: ${response.status} - ${errorText}`);
+                    alert(`上傳失敗: ${response.status} - ${errorText}`);
+                    return false;
                 }
             } catch (error) {
                 console.error('URL上傳錯誤:', error);
+                alert('上傳錯誤，請檢查網路連線或後端服務');
+                return false;
             }
         }
 
@@ -1779,29 +1793,38 @@
             const isDynamic = button.closest('#selectedOptions') || button.closest('#additionalItems') || button.closest(
                 '.special-operations');
             const buttonId = isDynamic ? 'dynamic-' + button.id : button.id;
+            let status = '';
 
             if (input === "v") {
                 button.classList.remove("rejected", "recheck");
                 button.classList.add("done");
                 button.textContent = button.textContent.replace(" 🚫", "").replace(" ✅", "").replace(" 🔄", "") + " ✅";
+                status = 'done';
             } else if (input === "x") {
                 button.classList.remove("done", "rejected", "recheck");
                 button.textContent = button.textContent.replace(" ✅", "").replace(" 🚫", "").replace(" 🔄", "");
+                status = 'cleared';
             } else if (input === "g" && (button.closest('.basic-checkup') || button.closest('#selectedOptions'))) {
                 button.classList.remove("done", "recheck");
                 button.classList.add("rejected");
                 button.textContent = button.textContent.replace(" ✅", "").replace(" 🚫", "").replace(" 🔄", "") + " 🚫";
+                status = 'rejected';
             } else if (input === "2") {
                 button.classList.remove("done", "rejected");
                 button.classList.add("recheck");
                 button.textContent = button.textContent.replace(" ✅", "").replace(" 🚫", "").replace(" 🔄", "") + " 🔄";
+                status = 'recheck';
             } else {
                 alert("輸入錯誤，請重新操作！");
                 return;
             }
+
             updateURL();
             if (currentPage === 2) {
-                await uploadCurrentURL();
+                const success = await uploadCurrentURL(buttonId, status);
+                if (!success) {
+                    console.warn(`按鈕 ${buttonId} 狀態 (${status}) 上傳失敗`);
+                }
             }
         }
 
@@ -1819,9 +1842,10 @@
                 full_url: window.location.href,
                 barcode: barcodeValue,
                 serial: serialNumber,
-                total_amount: window.totalAmount || 0
+                total_amount: window.totalAmount || 0 // 新增：發送總金額，如果未計算則預設0
             };
-            fetch('https://your-server.com/upload', {
+
+            fetch('https://your-server.com/upload', { // 替換成您的實際後端URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1847,3 +1871,4 @@
         }
     </script>
 </body>
+
