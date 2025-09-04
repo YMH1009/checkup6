@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
 
 <head>
     <meta charset="UTF-8" />
@@ -1762,7 +1764,7 @@
             };
             console.log('上傳資料:', JSON.stringify(data, null, 2));
             try {
-                const response = await fetch('https://your-server.com/upload', {
+                const response = await fetch('https://www.centralclinichospital.org/CheckUp/advantech/upload/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1845,7 +1847,7 @@
                 total_amount: window.totalAmount || 0 // 新增：發送總金額，如果未計算則預設0
             };
 
-            fetch('https://your-server.com/upload', { // 替換成您的實際後端URL
+            fetch('https://www.centralclinichospital.org/CheckUp/advantech/upload/', { // 替換成您的實際後端URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1872,3 +1874,4 @@
     </script>
 </body>
 
+</html>
